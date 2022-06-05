@@ -1,0 +1,21 @@
+{
+  "name": "blockchain",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@typechain/truffle-v5": "^8.0.0",
+    "truffle": "^5.5.17",
+    "ts-node": "^10.8.1",
+    "typechain": "^8.0.0",
+    "typescript": "^4.7.3"
+  }
+}
