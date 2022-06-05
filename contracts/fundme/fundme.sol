@@ -3,10 +3,13 @@ pragma solidity >=0.4.24 <0.9.0;
 
 import "./priceconverter.sol";
 
+error NotOwner(); 
+
 contract FundMe {
   using PriceConverter for uint256;
 
-  uint256 public minUsd;
+  // constants should be capitalized it is a convention
+  uint256 public constant MININUM_USD = 50 * 1e18;
 
   address[] public funders; 
 
@@ -14,18 +17,18 @@ contract FundMe {
   // constructor is called when the contract is created
   // it is called with the same arguments as the contract
 
-  address public ownerAddress; 
+  // immutable is marked with the i_ prefix
+  address public immutable i_ownerAddress; 
 
   constructor(){ 
-    minUsd = 50 * 1e18; 
-    ownerAddress = msg.sender;
+    i_ownerAddress = msg.sender;
   }
 
   // to make a function payable, we need to add the payable modifier
   function fund() public payable{
     // require at least 1 ether to be sent = 1e18 is equal to 1 * 10 ** 18
     // we also can return a message if the transaction is not successful
-    require(msg.value.getConversionRate() >= minUsd, "You need to send at least 1 ether");
+    require(msg.value.getConversionRate() >= MININUM_USD, "You need to send at least 1 ether");
     // msg.sender is the address of the sender
     // msg.value is the amount of ether sent
     funders.push(msg.sender);
@@ -34,8 +37,6 @@ contract FundMe {
   
   
   function withdraw() public onlyOwner {
-    require(msg.sender == ownerAddress, "Only the contract owner can withdraw");
-
     for(uint256 funderIndex = 0; funderIndex < funders.length; funderIndex++){
       address funder = funders[funderIndex]; 
       addressToAmountFunded[funder] = 0; 
@@ -56,7 +57,7 @@ contract FundMe {
     // 3. call 
 
     // payable(msg.sender) = payable address
-    // payable(msg.sender).transfer(address(this).balance);
+    // payable(msg.sender).t ransfer(address(this).balance);
 
     // bool isSuccess = payable(msg.sender).send(address(this).balance);
     // require(isSuccess, "Failed to send ether");
@@ -73,8 +74,24 @@ contract FundMe {
 
   // modifiers
   modifier onlyOwner{
-    require(msg.sender == ownerAddress, "Only the contract owner can perform this action");
+    if (msg.sender != i_ownerAddress){
+      revert NotOwner(); 
+    }
+
+    // require(msg.sender == i_ownerAddress, "Only the contract owner can perform this action");
     // onlyscore is to call the rest of the function
     _;
+  }
+
+  // how to protect from people send ETH to contract without calling fund? 
+
+  // recive will be called on low level interactions if the calldata is empty
+  // otherwise it will call fallback if exists
+  receive() external payable { 
+    fund();
+  }
+
+  fallback() external payable { 
+    fund();
   }
 }
